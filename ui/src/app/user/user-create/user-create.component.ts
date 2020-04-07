@@ -1,5 +1,7 @@
-import {Component, EventEmitter, OnInit, Output} from '@angular/core';
-import {FormControl, FormGroup} from '@angular/forms';
+import {Component, EventEmitter, OnInit, Output, ViewChild} from '@angular/core';
+import {NgForm} from '@angular/forms';
+import {User} from '../user';
+import {UserService} from '../user.service';
 
 @Component({
   selector: 'app-user-create',
@@ -7,36 +9,67 @@ import {FormControl, FormGroup} from '@angular/forms';
   styleUrls: ['./user-create.component.css']
 })
 export class UserCreateComponent implements OnInit {
-
-  createUserOpened = false;
-  staticBackdrop = true;
-  closable = true;
-  form = new FormGroup({
-    'email': new FormControl(),
-    'username': new FormControl(),
-    'password': new FormControl(),
-    'comment': new FormControl()
-  });
-
   @Output() create = new EventEmitter<boolean>();
+  staticBackdrop = true;
+  closable = false;
+  opened: boolean;
+  isSubmitGoing = false;
+  user: User = new User();
+  loading = false;
+  @ViewChild('userForm', {static: true}) userFrom: NgForm;
+  isPasswordMatch = true;
+  isUserNameDuplicate = false;
 
-
-  constructor() {
+  constructor(private userService: UserService) {
   }
 
+
   ngOnInit() {
+
+  }
+
+  reset() {
+    this.isPasswordMatch = true;
+    this.isUserNameDuplicate = false;
+    this.userFrom.resetForm();
+  }
+
+
+  onCancel() {
+    this.opened = false;
   }
 
   onSubmit() {
-    this.create.emit();
+    if (this.isSubmitGoing) {
+      return;
+    }
+    this.isSubmitGoing = true;
+    this.userService.createUser(this.user).subscribe(data => {
+      this.isSubmitGoing = false;
+      this.opened = false;
+      this.create.emit(true);
+    });
+  }
+
+  checkPassword() {
+    this.isPasswordMatch = this.user.password === this.user.ensurePassword;
+  }
+
+  checkUsernameDuplicate() {
+    this.userService.listUsers().subscribe(data => {
+      data.some(u => {
+        if (u.username === this.user.username) {
+          this.isUserNameDuplicate = true;
+          return;
+        }
+      });
+    });
+    this.isUserNameDuplicate = false;
   }
 
   newUser() {
-    this.createUserOpened = true;
+    this.reset();
+    this.opened = true;
+    this.user = new User();
   }
-
-  onCancel() {
-    this.createUserOpened = false;
-  }
-
 }

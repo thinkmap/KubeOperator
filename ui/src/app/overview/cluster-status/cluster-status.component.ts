@@ -6,86 +6,120 @@ import {ScaleComponent} from '../scale/scale.component';
 import {Router} from '@angular/router';
 import {OperaterService} from '../../deploy/component/operater/operater.service';
 import {ClusterHealthService} from '../../cluster-health/cluster-health.service';
-import {ClusterHealth} from '../../cluster-health/cluster-health';
+import {AddWorkerComponent} from '../add-worker/add-worker.component';
+import {RemoveWorkerComponent} from '../remove-worker/remove-worker.component';
+import {ClusterService} from '../../cluster/cluster.service';
+import {SessionService} from '../../shared/session.service';
+import {stringify} from '@angular/compiler/src/util';
 
 
 @Component({
-  selector: 'app-cluster-status',
-  templateUrl: './cluster-status.component.html',
-  styleUrls: ['./cluster-status.component.css']
+    selector: 'app-cluster-status',
+    templateUrl: './cluster-status.component.html',
+    styleUrls: ['./cluster-status.component.css']
 })
 export class ClusterStatusComponent implements OnInit {
 
-  @Input() currentCluster: Cluster;
-  workers: Node[] = [];
-  @ViewChild(ScaleComponent, {static: true}) scale: ScaleComponent;
-  clusterHealth: ClusterHealth = new ClusterHealth();
+    @Input() currentCluster: Cluster;
+    workers: Node[] = [];
+    @ViewChild(ScaleComponent, {static: true}) scale: ScaleComponent;
+    @ViewChild(AddWorkerComponent, {static: true}) addWorker: AddWorkerComponent;
+    @ViewChild(RemoveWorkerComponent, {static: true}) removeWorker: RemoveWorkerComponent;
+    componentData = [];
+    loading = false;
+    permission;
 
-
-  constructor(private nodeService: NodeService, private clusterHealthService: ClusterHealthService,
-              private router: Router, private operaterService: OperaterService) {
-  }
-
-  ngOnInit() {
-    this.nodeService.listNodes(this.currentCluster.name).subscribe(data => {
-      this.workers = data.filter((node) => {
-        return node.roles.includes('worker');
-      });
-    });
-    this.getClusterStatus();
-  }
-
-  handleScale() {
-    const params = {'num': this.scale.worker_size};
-    this.operaterService.executeOperate(this.currentCluster.name, 'scale', params).subscribe(() => {
-      this.redirect('deploy');
-    }, error => {
-      this.scale.opened = false;
-    });
-  }
-
-  redirect(url: string) {
-    if (url) {
-      const linkUrl = ['kubeOperator', 'cluster', this.currentCluster.name, url];
-      this.router.navigate(linkUrl);
+    constructor(private nodeService: NodeService, private clusterHealthService: ClusterHealthService,
+                private router: Router, private operaterService: OperaterService, private clusterService: ClusterService,
+                private sessionService: SessionService) {
     }
-  }
 
-  onScale() {
-    this.scale.worker_size = this.workers.length;
-    this.scale.opened = true;
-  }
-
-  toHealth() {
-    this.redirect('health');
-  }
-
-  getClusterStatus() {
-    this.clusterHealth.data = [];
-    if (this.currentCluster.status === 'READY' || this.currentCluster.status === 'ERROR') {
-      return;
+    ngOnInit() {
+        this.permission = this.sessionService.getItemPermission(this.currentCluster.item_name);
+        this.nodeService.listNodes(this.currentCluster.name).subscribe(data => {
+            this.workers = data.filter((node) => {
+                return node.roles.includes('worker');
+            });
+        });
+        this.getClusterStatus();
     }
-    this.clusterHealthService.listClusterHealth(this.currentCluster.name).subscribe(res => {
-      this.clusterHealth = res;
-    }, error1 => {
-      this.clusterHealth.data = [];
-    });
-  }
 
-  getServiceStatus(type) {
-    if (this.clusterHealth.data.length === 0 ) {
-      return '';
+    handleScale() {
+        const params = {'num': this.scale.worker_size};
+        this.operaterService.executeOperate(this.currentCluster.name, 'scale', params).subscribe(() => {
+            this.redirect('deploy');
+        }, error => {
+            this.scale.opened = false;
+        });
     }
-    let status = 'UNKNOWN';
-    for (const ch of this.clusterHealth.data) {
-      if (ch.job === type) {
-        if (ch.rate === 100) {
-          status =  'RUNNING';
-        } else {
-          status =  'WARNING';
+
+    refresh() {
+        this.clusterService.getCluster(this.currentCluster.name).subscribe(data => {
+            this.currentCluster = data;
+        });
+    }
+
+    handleAddWorker() {
+        const hosts = [];
+        this.addWorker.host_names.forEach(h => {
+            hosts.push(h['value']);
+        });
+        const params = {'hosts': hosts};
+        this.operaterService.executeOperate(this.currentCluster.name, 'add-worker', params).subscribe(() => {
+            this.redirect('deploy');
+        }, error => {
+            this.scale.opened = false;
+        });
+    }
+
+    handleRemoveWorker() {
+        const nodes = [];
+        this.removeWorker.worker_names.forEach(w => {
+            nodes.push(w['value']);
+        });
+        const params = {'nodes': nodes};
+        this.operaterService.executeOperate(this.currentCluster.name, 'remove-worker', params).subscribe(() => {
+            this.redirect('deploy');
+        }, error => {
+            this.scale.opened = false;
+        });
+    }
+
+    redirect(url: string) {
+        if (url) {
+            const linkUrl = ['cluster', this.currentCluster.name, url];
+            this.router.navigate(linkUrl);
         }
-      }
     }
-    return status;
-  }
+
+    onScale() {
+        this.scale.worker_size = this.workers.length;
+        this.scale.opened = true;
+    }
+
+    onAddWorker() {
+        this.addWorker.loadHosts();
+        this.addWorker.opened = true;
+    }
+
+    onRemoveWorker() {
+        this.removeWorker.loadNodes(this.currentCluster.name);
+        this.removeWorker.opened = true;
+    }
+
+    toHealth() {
+        this.redirect('health');
+    }
+
+    getClusterStatus() {
+        this.loading = true;
+        this.clusterHealthService.listComponent(this.currentCluster.name).subscribe(res => {
+            this.componentData = res;
+            this.loading = false;
+        }, error1 => {
+            this.loading = false;
+        });
+    }
+
+
 }

@@ -18,9 +18,13 @@ export class HostListComponent implements OnInit {
   selectedHosts: Host[] = [];
   showHostInfo = false;
   @Output() addHost = new EventEmitter();
+  @Output() importHost = new EventEmitter();
   @ViewChild(HostInfoComponent, {static: true})
   child: HostInfoComponent;
 
+  page = 1;
+  size = 10;
+  total = 100;
 
   constructor(private hostService: HostService, private alertService: CommonAlertService) {
   }
@@ -49,7 +53,7 @@ export class HostListComponent implements OnInit {
   confirmDelete() {
     const promises: Promise<{}>[] = [];
     this.selectedHosts.forEach(host => {
-      promises.push(this.hostService.deleteHost(host.id).toPromise());
+      promises.push(this.hostService.delete(host.id).toPromise());
     });
     Promise.all(promises).then(() => {
       this.refresh();
@@ -71,17 +75,21 @@ export class HostListComponent implements OnInit {
     this.addHost.emit();
   }
 
+  importNewHost() {
+    this.importHost.emit();
+  }
+
   openInfo(host: Host) {
     this.showHostInfo = true;
     this.child.host = host;
   }
 
   listHost() {
-    this.hostService.listHosts().subscribe(data => {
-      this.hosts = data;
+    this.loading = true;
+    this.hostService.list(this.page, this.size).subscribe(data => {
+      this.hosts = data.results;
       this.loading = false;
-    }, error => {
-      this.loading = false;
+      this.total = data.count;
     });
   }
 

@@ -1,4 +1,3 @@
-<app-cluster-backup-strategy></app-cluster-backup-strategy>
 <h3>备份列表</h3>
 <app-delete-alert [(opened)]="showDelete" [resourceTypeName]="resourceTypeName" [items]="selected"
                   (confirm)="delete()">
@@ -8,12 +7,12 @@
     <clr-dg-action-bar>
     <div class="btn-group">
        <button type="button" class="btn btn-sm btn-secondary"
-              [disabled]="selected.length == 0"
+              [disabled]="selected.length == 0 || permission==='VIEWER'"
               (click)="showDelete=true" >
         <clr-icon shape="close"></clr-icon>
         删除
       </button>
-      <button type="button" class="btn btn-sm btn-secondary" [disabled]="selected.length != 1" (click)="onRestore()">
+      <button type="button" class="btn btn-sm btn-secondary" [disabled]="selected.length != 1 || this.currentCluster.status === 'Ready' || permission==='VIEWER'" (click)="onRestore()">
         <clr-icon shape="backup-restore" size="16" ></clr-icon>
         恢复
       </button>

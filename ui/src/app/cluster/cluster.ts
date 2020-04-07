@@ -8,13 +8,13 @@ export class Cluster {
   package: string;
   comment: string;
   template: string;
+  cluster_doamin_suffix: string;
   deploy_type: string;
   cloud_provider: string;
   plan: string;
-  worker_size = 3;
+  worker_size: number;
   persistent_storage: string;
   date_created: string;
-  auth_template: string;
   node: Node[];
   current_execution: Execution;
   status: string;
@@ -27,10 +27,18 @@ export class Cluster {
   zones: string[] = [];
   meta: {} = {};
   configs: {} = {};
+  item_name: string;
 
   constructor() {
-    this.configs['SERVICE_CIDR'] = '10.68.0.0/16';
-    this.configs['CLUSTER_CIDR'] = '172.20.0.0/16';
+    this.worker_size = 1;
+    this.configs['SERVICE_CIDR'] = '179.10.0.0/16';
+    this.configs['CLUSTER_CIDR'] = '179.20.0.0/16';
+    this.configs['STORAGE_DIR'] = '/var/lib/docker';
+    this.configs['MAX_PODS'] = 100;
+    this.configs['DOCKER_ADDR'] = '179.30.0.1/24';
+    this.configs['PROXY_MODE'] = 'iptables';
+    this.configs['PROMETHEUS_RETENTION'] = '7';
+    this.configs['ingress_backend'] = 'traefik';
   }
 }
 

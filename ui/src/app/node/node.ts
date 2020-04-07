@@ -1,4 +1,4 @@
-import {Host} from '../host/host';
+import {Condition, Host} from '../host/host';
 
 export class Node {
   id: string;
@@ -14,4 +14,8 @@ export class Node {
   delete = true;
   volumes: string[] = [];
   status: string;
+  conditions: Condition[] = [];
+  info: {} = {};
+  cpu_usage: number;
+  mem_usage: number;
 }

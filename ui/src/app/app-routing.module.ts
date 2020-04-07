@@ -28,27 +28,49 @@ import {ClusterBackupComponent} from './cluster-backup/cluster-backup.component'
 import {BackupStorageSettingComponent} from './setting/backup-storage-setting/backup-storage-setting.component';
 import {NfsComponent} from './nfs/nfs.component';
 import {StorageComponent} from './storage/storage.component';
+import {DashboardComponent} from './dashboard/dashboard.component';
+import {SystemLogComponent} from './system-log/system-log.component';
+import {DnsComponent} from './dns/dns.component';
+import {ClusterStorageComponent} from './cluster-storage/cluster-storage.component';
+import {ClusterEventComponent} from './cluster-event/cluster-event.component';
+import {CephComponent} from './ceph/ceph.component';
+import {ItemComponent} from './item/item.component';
+import {ItemDetailComponent} from './item/item-detail/item-detail.component';
+import {ItemRoutingResolverService} from './item/item-routing-resolver.service';
+import {ItemMemberComponent} from './item-member/item-member.component';
+import {ItemResourceComponent} from './item-resource/item-resource.component';
+import {LdapComponent} from './setting/ldap/ldap.component';
+import {NotificationComponent} from './setting/notification/notification.component';
+import {MessageCenterComponent} from './message-center/message-center.component';
+import {LocalMailComponent} from './message-center/local-mail/local-mail.component';
+import {DescribeComponent} from './overview/describe/describe.component';
+import {SubscribeComponent} from './message-center/subscribe/subscribe.component';
+import {ReceiverComponent} from './message-center/receiver/receiver.component';
+import {ClusterGradeComponent} from './cluster-grade/cluster-grade.component';
 
 const routes: Routes = [
-  {path: '', redirectTo: 'kubeOperator', pathMatch: 'full'},
   {path: 'sign-in', component: SignInComponent},
   {
-    path: 'kubeOperator',
+    path: '',
     component: ShellComponent,
     canActivate: [AuthUserActiveService],
     canActivateChild: [AuthUserActiveService],
     children: [
-      {path: '', redirectTo: 'cluster', pathMatch: 'full'},
+      {path: '', redirectTo: 'dashboard', pathMatch: 'full'},
+      {path: 'dashboard', component: DashboardComponent},
       {path: 'cluster', component: ClusterComponent},
+      {path: 'item', component: ItemComponent},
       {path: 'package', component: PackageComponent},
       {path: 'user', component: UserComponent},
       {path: 'host', component: HostComponent},
+      {path: 'user', component: UserComponent},
       {
         path: 'storage',
         component: StorageComponent,
         children: [
           {path: '', redirectTo: 'nfs', pathMatch: 'full'},
           {path: 'nfs', component: NfsComponent},
+          {path: 'ceph', component: CephComponent},
         ]
       },
       {
@@ -68,7 +90,9 @@ const routes: Routes = [
           {path: '', redirectTo: 'system', pathMatch: 'full'},
           {path: 'system', component: SystemSettingComponent},
           {path: 'credential', component: CredentialComponent},
-          {path: 'backup-storage', component: BackupStorageSettingComponent}
+          {path: 'backup-storage', component: BackupStorageSettingComponent},
+          {path: 'ldap', component: LdapComponent},
+          {path: 'notification', component: NotificationComponent}
         ]
       },
       {
@@ -83,8 +107,37 @@ const routes: Routes = [
           {path: 'log', component: LogComponent},
           {path: 'apps', component: ApplicationComponent},
           {path: 'health', component: ClusterHealthComponent},
+          {path: 'event', component: ClusterEventComponent},
           {path: 'backup', component: ClusterBackupComponent},
-          {path: 'big-ip', component: F5BigIpComponent}
+          {path: 'grade', component: ClusterGradeComponent},
+          {path: 'big-ip', component: F5BigIpComponent},
+          {path: 'cluster-storage', component: ClusterStorageComponent}
+        ]
+      },
+      {
+        path: 'item/:itemName',
+        component: ItemDetailComponent,
+        resolve: {item: ItemRoutingResolverService},
+        children: [
+          {path: '', redirectTo: 'cluster', pathMatch: 'full'},
+          {
+            path: 'cluster', component: ClusterComponent
+          },
+          {path: 'members', component: ItemMemberComponent},
+          {path: 'resource', component: ItemResourceComponent},
+        ]
+      },
+      {
+        path: 'system/log', component: SystemLogComponent
+      },
+      {
+        path: 'messageCenter',
+        component: MessageCenterComponent,
+        children: [
+          {path: '', redirectTo: 'localMail', pathMatch: 'full'},
+          {path: 'localMail', component: LocalMailComponent},
+          {path: 'subscribe', component: SubscribeComponent},
+          {path: 'receiver', component: ReceiverComponent},
         ]
       }
     ]

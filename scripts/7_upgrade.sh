@@ -17,6 +17,11 @@ function stop_service() {
         echo "[ERROR]"
         exit 1
     fi
+    echo "停止 nexus 容器 ..."
+    container_id=(`docker ps -a | grep nexus-helm | awk '{print $1}'`)
+    for cid in ${container_id[@]}; do
+        docker rm -f $cid
+    done
 }
 
 function start_service() {
@@ -27,6 +32,24 @@ function start_service() {
     else
         echo "[ERROR]"
         exit 1
+    fi
+}
+
+function check_docker_service() {
+    echo -ne "检测 docker 服务状态 ... "
+    result=`docker ps 2>&1`
+    if [ "$?" -eq "0" ]; then
+        echo "[OK]"
+    else
+        if [[ $(echo $result | grep 'not found' | wc -l) == 1 ]]; then
+            echo "[ERROR] 没有找到 docker 服务"
+            exit 1
+        elif [[ $(echo $result | grep 'running?' | wc -l) == 1 ]]; then
+            echo "[ERROR] docker 服务未运行，请启动 docker 服务"
+            exit 1
+        else
+            echo "[ERROR] 请检查 docker 服务"
+        fi
     fi
 }
 
@@ -41,6 +64,8 @@ function upgrade_service() {
     \mv -f ${compose_file} ${compose_bak}
 
     echo -ne "更新升级文件 ... "
+    package_name=`ls -l ${PROJECT_DIR}/data/packages/ | grep -v total | awk '{print $9}'`
+    rm -rf ${KUBEOPS_DIR}/data/packages/${package_name}
     \cp -rf ${PROJECT_DIR}/* ${KUBEOPS_DIR}/
     chmod -R 777 ${KUBEOPS_DIR}/data
     echo "[OK]"
@@ -71,10 +96,7 @@ function upgrade_service() {
 }
 
 function main() {
-    stop_service
-    upgrade_service
-    start_service
-    success
+    check_docker_service && stop_service && upgrade_service && start_service && success
 }
 
 main

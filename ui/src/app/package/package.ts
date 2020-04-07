@@ -40,6 +40,7 @@ export class App {
   logo: string;
   url_key: string;
   describe: string;
+  display_on: string;
 }
 
 export class ClusterInfo {
@@ -60,7 +61,7 @@ export class Config {
 
 export class Option {
   name: string;
-  alias: string;
+  value: string;
 }
 
 export class Role {

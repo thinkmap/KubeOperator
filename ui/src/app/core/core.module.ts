@@ -7,6 +7,8 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {BrowserModule} from '@angular/platform-browser';
 import {RouterModule} from '@angular/router';
 import {NgxEchartsModule} from 'ngx-echarts';
+import {LSelect2Module} from 'ngx-select2';
+import {NgxUploaderModule} from 'ngx-uploader';
 
 
 @NgModule({
@@ -21,7 +23,9 @@ import {NgxEchartsModule} from 'ngx-echarts';
     BrowserAnimationsModule,
     BrowserModule,
     RouterModule,
-    NgxEchartsModule
+    NgxEchartsModule,
+    LSelect2Module,
+    NgxUploaderModule
   ],
   exports: [
     CommonModule,
@@ -33,7 +37,9 @@ import {NgxEchartsModule} from 'ngx-echarts';
     HttpClientJsonpModule,
     BrowserModule,
     NgxEchartsModule,
-    BrowserAnimationsModule
+    BrowserAnimationsModule,
+    LSelect2Module,
+    NgxUploaderModule
   ]
 })
 export class CoreModule {

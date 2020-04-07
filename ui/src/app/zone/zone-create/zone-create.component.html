@@ -13,9 +13,12 @@
     <form clrForm #basicForm="ngForm">
       <clr-input-container>
         <label>名称</label>
-        <input clrInput size=45 type="text" [(ngModel)]="item.name" name="name" (blur)="nameOnBlur()" required>
+        <input clrInput size=45 maxlength="15" type="text" pattern="{{name_pattern}}" [(ngModel)]="item.name"
+               name="name" (blur)="nameOnBlur()" required>
         <clr-control-error *ngIf="nameCtrl&&nameCtrl.errors&&nameCtrl.errors.required">此字段为必填项</clr-control-error>
         <clr-control-error *ngIf="nameCtrl&&nameCtrl.errors&&nameCtrl.errors.repeat">名称重复</clr-control-error>
+        <clr-control-error *ngIf="nameCtrl&&nameCtrl.errors&&nameCtrl.invalid">{{name_pattern_tip}}</clr-control-error>
+        <clr-control-helper>{{name_pattern_tip}}</clr-control-helper>
       </clr-input-container>
       <clr-select-container>
         <label>区域</label>
@@ -103,6 +106,19 @@
               <input clrInput size=45 type="text" [(ngModel)]="item.vars['vc_gateway']" name="gateway" required>
               <clr-control-error>此字段为必填项</clr-control-error>
             </clr-input-container>
+            <clr-input-container>
+              <label>DNS 1</label>
+              <input clrInput size=45 type="text" [(ngModel)]="item.vars['dns1']" name="dns1" required>
+              <clr-control-error>此字段为必填项</clr-control-error>
+              <clr-control-helper>例如: 114.114.114.114</clr-control-helper>
+            </clr-input-container>
+
+            <clr-input-container>
+              <label>DNS 2</label>
+              <input clrInput size=45 type="text" [(ngModel)]="item.vars['dns2']" name="dns2" required>
+              <clr-control-error>此字段为必填项</clr-control-error>
+              <clr-control-helper>例如: 114.114.114.114</clr-control-helper>
+            </clr-input-container>
           </div>
         </div>
 
@@ -160,7 +176,7 @@
                 <option *ngFor="let type of cloudZone.ipType" [value]="type">{{type}}</option>
               </select>
               <clr-control-error>此字段为必填项</clr-control-error>
-              <clr-control-helper>选择用于连接虚拟机的网络</clr-control-helper>
+              <clr-control-helper>选择用于连接虚拟机的网络类型</clr-control-helper>
             </clr-select-container>
 
             <clr-select-container *ngIf="item.vars['openstack_ip_type'] === 'private'">
@@ -170,18 +186,18 @@
                 <option *ngFor="let subnet of subnetList" [value]="subnet.id">{{subnet.name}}</option>
               </select>
               <clr-control-error>此字段为必填项</clr-control-error>
-              <clr-control-helper>选择用于连接虚拟机的网络</clr-control-helper>
+              <clr-control-helper>选择用于连接虚拟机的子网</clr-control-helper>
             </clr-select-container>
 
             <clr-select-container *ngIf="item.vars['openstack_ip_type'] === 'floating'">
               <label>FloatingIP池</label>
-              <select [(ngModel)]="item.vars['openstack_floating_network']" name="network" clrSelect required>
+              <select [(ngModel)]="item.vars['openstack_floating_network']" name="floatingNetwork" clrSelect required>
                 <option value="">请选择</option>
                 <option *ngFor="let network of cloudZone.floatingNetworkList"
-                        [value]="network.id">{{network.name}}</option>
+                        [value]="network.name">{{network.name}}</option>
               </select>
               <clr-control-error>此字段为必填项</clr-control-error>
-              <clr-control-helper>选择用于连接虚拟机的网络</clr-control-helper>
+              <clr-control-helper>选择用于连接虚拟机的FloatingIP网络</clr-control-helper>
             </clr-select-container>
 
             <clr-input-container>

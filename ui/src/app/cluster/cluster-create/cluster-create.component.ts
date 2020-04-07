@@ -22,6 +22,11 @@ import {AlertLevels} from '../../base/header/components/common-alert/alert';
 import {Storage} from '../cluster';
 import {Storage as StorageItem} from '../cluster';
 import {StorageService} from '../storage.service';
+import * as globals from '../../globals';
+import {CephService} from '../../ceph/ceph.service';
+import {SessionService} from '../../shared/session.service';
+import {ItemService} from '../../item/item.service';
+import {SessionUser} from '../../shared/session-user';
 
 export const CHECK_STATE_PENDING = 'pending';
 export const CHECK_STATE_SUCCESS = 'success';
@@ -56,6 +61,7 @@ export class ClusterCreateComponent implements OnInit, OnDestroy {
   groups: Group[] = [];
   plans: Plan[] = [];
   plan: Plan;
+  global_domain: string;
   checkCpuState = CHECK_STATE_PENDING;
   checkMemoryState = CHECK_STATE_PENDING;
   checkOsState = CHECK_STATE_PENDING;
@@ -68,23 +74,31 @@ export class ClusterCreateComponent implements OnInit, OnDestroy {
   @ViewChild('networkForm', {static: true}) networkForm: NgForm;
   @ViewChild('nodeForm', {static: false}) nodeForm: NgForm;
   @ViewChild('configForm', {static: true}) configForm: NgForm;
+  @ViewChild('workerForm', {static: true}) workerForm: NgForm;
+  @ViewChild('alertModal', {static: true}) alertModal;
   isNameValid = true;
   nameTooltipText = '只允许小写英文字母! 请勿包含特殊符号！';
   checkOnGoing = false;
   Manual = 'MANUAL';
   Automatic = 'AUTOMATIC';
   clusterNameChecker: Subject<string> = new Subject<string>();
+  name_pattern = globals.cluster_name_pattern;
+  domain_pattern = globals.domain_pattern;
+  name_pattern_tip = globals.cluster_name_pattern_tip;
+  itemName: string;
+  items = [];
 
   @Output() create = new EventEmitter<boolean>();
 
   constructor(private alertService: CommonAlertService, private nodeService: NodeService, private clusterService: ClusterService
     , private packageService: PackageService, private relationService: RelationService,
               private hostService: HostService, private deviceCheckService: DeviceCheckService,
-              private settingService: SettingService, private planService: PlanService, private storageService: StorageService) {
+              private settingService: SettingService, private planService: PlanService, private storageService: StorageService,
+              private cephService: CephService, private sessionService: SessionService, private itemService: ItemService) {
   }
 
   ngOnInit() {
-    this.clusterNameChecker.pipe(debounceTime(3000)).subscribe(() => {
+    this.clusterNameChecker.pipe(debounceTime(500)).subscribe(() => {
       const cluster_name = this.basicForm.controls['cluster_name'];
       if (cluster_name) {
         this.isNameValid = cluster_name.valid;
@@ -95,21 +109,53 @@ export class ClusterCreateComponent implements OnInit, OnDestroy {
               this.checkOnGoing = false;
               this.nameTooltipText = '集群名称 ' + this.cluster.name + '已存在！';
               this.isNameValid = false;
+              this.alertModal.showTip(true, this.nameTooltipText);
             }, error1 => {
               this.checkOnGoing = false;
+              this.alertModal.closeTip();
             });
           }
         }
       }
     });
-    this.settingService.getSetting('domain_suffix').subscribe(data => {
-      this.suffix = '.' + data.value;
+
+    const profile = this.sessionService.getCacheProfile();
+    const user = profile.user;
+
+    this.itemService.listItem().subscribe(res => {
+      this.items = res;
+      if (!user.is_superuser) {
+        this.items = this.sessionService.getManageItems(this.items);
+      }
     });
   }
 
   ngOnDestroy(): void {
     this.clusterNameChecker.unsubscribe();
   }
+
+  reset() {
+    this.wizard.reset();
+    this.basicForm.resetForm();
+    this.storageForm.resetForm();
+    this.networkForm.resetForm();
+    this.cluster = new Cluster();
+    this.cluster.template = '';
+    this.template = null;
+    this.templates = [];
+    this.nodes = [];
+    this.configs = [];
+    this.groups = null;
+    this.storage = null;
+    this.network = null;
+    this.networks = null;
+    this.resetCheckState();
+    this.settingService.getSettings().subscribe(data => {
+      this.global_domain = data['domain_suffix'];
+      this.cluster.cluster_doamin_suffix = this.global_domain;
+    });
+  }
+
 
   public get isBasicFormValid(): boolean {
     return this.basicForm && this.basicForm.valid && this.isNameValid && !this.checkOnGoing && this.cluster.package !== '';
@@ -133,10 +179,16 @@ export class ClusterCreateComponent implements OnInit, OnDestroy {
 
   onStorageChange() {
     if (this.cluster.persistent_storage === 'nfs') {
-      this.storageService.list(this.cluster.persistent_storage).subscribe(data => {
+      this.storageService.list(this.cluster.persistent_storage, this.itemName).subscribe(data => {
         this.storageList = data;
       });
     }
+    if (this.cluster.persistent_storage === 'external-ceph') {
+      this.storageService.list('ceph', this.itemName).subscribe(data => {
+        this.storageList = data;
+      });
+    }
+
     this.storages.forEach(storage => {
       if (this.cluster.persistent_storage === storage.name) {
         this.storage = storage;
@@ -165,52 +217,44 @@ export class ClusterCreateComponent implements OnInit, OnDestroy {
     }
   }
 
+  onChangeItem(itemName) {
+    this.itemName = itemName;
+    this.getItemResources();
+  }
+
   newCluster() {
     this.reset();
     this.createClusterOpened = true;
     this.listPackages();
-    this.getAllHost();
-    this.listPlans();
     this.loadClusterConfig();
   }
 
-
-  getAllHost() {
-    this.hostService.listHosts().subscribe(data => {
-      console.log(this.hosts);
-      this.hosts = data;
-    }, error => {
-      console.log(error);
-    });
+  getItemResources() {
+    this.getAllHost();
+    this.listPlans();
   }
 
-  reset() {
-    this.wizard.reset();
-    this.basicForm.resetForm();
-    this.cluster = new Cluster();
-    this.cluster.template = '';
-    this.template = null;
-    this.templates = [];
-    this.nodes = [];
-    this.configs = [];
-    this.groups = null;
-    this.storage = null;
-    this.network = null;
-    this.networks = null;
-    this.resetCheckState();
+  getAllHost() {
+    this.hostService.byItem(this.itemName).subscribe(data => {
+      console.log(data);
+      this.hosts = data.filter(host => {
+        return !host.cluster;
+      });
+    });
   }
 
 
   listPackages() {
     this.packageService.listPackage().subscribe(data => {
       this.packages = data;
+      console.log(data);
     }, error => {
       this.alertService.showAlert('加载离线包错误!: \n' + error, AlertLevels.ERROR);
     });
   }
 
   listPlans() {
-    this.planService.listPlan().subscribe(data => {
+    this.planService.listItemPlan(this.itemName).subscribe(data => {
       this.plans = data;
     });
   }
@@ -230,8 +274,8 @@ export class ClusterCreateComponent implements OnInit, OnDestroy {
   }
 
   onWorkerSizeChange() {
-    if (this.cluster.worker_size < 3) {
-      this.cluster.worker_size = 3;
+    if (this.cluster.worker_size < 1) {
+      this.cluster.worker_size = 1;
     }
   }
 
@@ -242,6 +286,16 @@ export class ClusterCreateComponent implements OnInit, OnDestroy {
         this.configs.concat(this.template.private_config);
       }
     });
+  }
+
+  workerSizeOnChange() {
+    if (this.cluster.worker_size < 1) {
+      this.cluster.worker_size = 1;
+    }
+    if (this.cluster.worker_size > this.hosts.length) {
+      this.cluster.worker_size = this.hosts.length;
+    }
+
     this.nodes = [];
     this.groups = [];
     this.templates.forEach(tmp => {
@@ -253,6 +307,9 @@ export class ClusterCreateComponent implements OnInit, OnDestroy {
             group.name = role.name;
             group.op = role.meta.requires.nodes_require[0];
             group.limit = role.meta.requires.nodes_require[1];
+            if (group.name === 'worker') {
+              group.limit = this.cluster.worker_size;
+            }
             for (let i = group.node_sum; i < group.limit; i++) {
               this.addNode(group, false);
             }
@@ -261,6 +318,16 @@ export class ClusterCreateComponent implements OnInit, OnDestroy {
         });
       }
     });
+  }
+
+  getPackageVars() {
+    let vars = null;
+    this.packages.forEach(p => {
+      if (p.name === this.cluster.package) {
+        vars = p.meta.vars;
+      }
+    });
+    return vars;
   }
 
   onHostChange(node: Node) {
@@ -302,12 +369,11 @@ export class ClusterCreateComponent implements OnInit, OnDestroy {
       node.delete = canDelete;
     }
     const no = group.node_sum + 1;
-    node.name = group.name + no + '.' + this.cluster.name + this.suffix;
+    node.name = group.name + no + '.' + this.cluster.name + '.' + this.cluster.cluster_doamin_suffix;
     group.node_sum++;
     node.roles.push(group.name);
     group.nodes.push(node);
     this.nodes.push(node);
-    console.log(this.nodes);
   }
 
   fullNode() {
@@ -331,6 +397,7 @@ export class ClusterCreateComponent implements OnInit, OnDestroy {
       return;
     }
     this.isSubmitGoing = true;
+    this.cluster.item_name = this.itemName;
     this.clusterService.createCluster(this.cluster).subscribe(data => {
       this.cluster = data;
       if (this.nodes) {
@@ -351,17 +418,14 @@ export class ClusterCreateComponent implements OnInit, OnDestroy {
   }
 
   canNodeNext(): boolean {
-    let result = false;
-    if (this.nodes) {
-      this.nodes.some(node => {
-        if (!node.host) {
-          result = true;
-          return true;
-        }
-      });
+    for (const node of this.nodes) {
+      if (!node.host) {
+        return false;
+      }
     }
-    return result;
+    return true;
   }
+
 
   finishForm() {
     this.isSubmitGoing = false;
@@ -444,7 +508,6 @@ export class ClusterCreateComponent implements OnInit, OnDestroy {
   }
 
   canCheckNext() {
-    return true;
     if (this.checkOsState === CHECK_STATE_SUCCESS && this.checkMemoryState === CHECK_STATE_SUCCESS &&
       this.checkCpuState === CHECK_STATE_SUCCESS) {
       return true;
@@ -456,6 +519,4 @@ export class ClusterCreateComponent implements OnInit, OnDestroy {
     this.reset();
     this.createClusterOpened = false;
   }
-
-
 }

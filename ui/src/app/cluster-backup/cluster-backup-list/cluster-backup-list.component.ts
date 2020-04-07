@@ -7,6 +7,7 @@ import {ConfirmAlertComponent} from '../../shared/common-component/confirm-alert
 import {CommonAlertService} from '../../base/header/common-alert.service';
 import {AlertLevels} from '../../base/header/components/common-alert/alert';
 import {OperaterService} from '../../deploy/component/operater/operater.service';
+import {SessionService} from '../../shared/session.service';
 
 
 @Component({
@@ -25,16 +26,19 @@ export class ClusterBackupListComponent implements OnInit {
   projectId = '';
   event: string = null;
   @ViewChild(ConfirmAlertComponent, {static: true}) confirmAlert: ConfirmAlertComponent;
+  permission: string;
 
 
   constructor(private route: ActivatedRoute, private clusterBackupService: ClusterBackupService,
-              private alertService: CommonAlertService, private operaterService: OperaterService, private router: Router) {
+              private alertService: CommonAlertService, private operaterService: OperaterService,
+              private router: Router, private sessionService: SessionService) {
   }
 
   ngOnInit() {
     this.route.parent.data.subscribe(data => {
       this.currentCluster = data['cluster'];
       this.projectId = this.currentCluster.id;
+      this.permission = this.sessionService.getItemPermission(this.currentCluster.item_name);
       this.listClusterBackups();
     });
   }
@@ -90,7 +94,7 @@ export class ClusterBackupListComponent implements OnInit {
 
   redirect(url: string) {
     if (url) {
-      const linkUrl = ['kubeOperator', 'cluster', this.currentCluster.name, url];
+      const linkUrl = ['cluster', this.currentCluster.name, url];
       this.router.navigate(linkUrl);
     }
   }

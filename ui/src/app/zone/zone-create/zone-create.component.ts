@@ -10,6 +10,8 @@ import {ZoneService} from '../zone.service';
 import {catchError} from 'rxjs/operators';
 import * as ipaddr from 'ipaddr.js';
 import {IpService} from '../ip.service';
+import * as globals from '../../globals';
+
 
 @Component({
   selector: 'app-zone-create',
@@ -32,6 +34,8 @@ export class ZoneCreateComponent implements OnInit {
   networkError = [];
   @ViewChild('basicForm', {static: true}) basicForm: NgForm;
   @ViewChild('wizard', {static: true}) wizard: ClrWizard;
+  name_pattern = globals.host_name_pattern;
+  name_pattern_tip = globals.host_name_pattern_tip;
 
   constructor(private regionService: RegionService,
               private cloudService: CloudService,
@@ -85,11 +89,14 @@ export class ZoneCreateComponent implements OnInit {
       this.networkError.push('截止IP不是有效的IPV4地址!');
     }
     if (ipaddr.isValid(ipStart) && ipaddr.isValid(ipEnd)) {
-      const start = ipaddr.parse(ipStart);
-      const end = ipaddr.parse(ipEnd);
-      if (start > end) {
-        result = false;
-        this.networkError.push('截止IP不可大于起始IP!');
+      const start = ipaddr.parse(ipStart).toByteArray();
+      const end = ipaddr.parse(ipEnd).toByteArray();
+      for (let i = 0; i < 4; i++) {
+        if (start[i] > end[i]) {
+          result = false;
+          this.networkError.push('截止IP必须大于起始IP!');
+          break;
+        }
       }
     }
     if (this.region.template === 'vsphere') {
@@ -111,7 +118,6 @@ export class ZoneCreateComponent implements OnInit {
       }
     }
     this.networkValid = result;
-    console.log()
   }
 
   listRegion() {

@@ -1,0 +1,27 @@
+- name: prepare kube bin files
+  hosts: localhost
+  connection: local
+  roles:
+    - kube-bin
+
+- name: udpate hosts
+  hosts: cluster_nodes
+  roles:
+    - nameserver
+
+- hosts: master
+  roles:
+    - daemon
+
+- hosts: new_node
+  roles:
+    - ssh
+    - repository
+    - firewall
+    - prepare
+    - rpm
+    - nameserver
+    - ntp
+    - docker
+    - { role: kube-node, when: "DEPLOY_MODE != 'allinone'" }
+    - scale

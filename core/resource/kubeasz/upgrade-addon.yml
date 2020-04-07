@@ -1,0 +1,6 @@
+- hosts:
+    - "{{groups['kube-master'][0]}}"
+  roles:
+    - manifests
+    - cluster-addon
+    - { role: kubeapps, when: "kubeapps_install is defined and kubeapps_install" }

@@ -11,7 +11,7 @@ import {CommonAlertComponent} from './header/components/common-alert/common-aler
 
 @NgModule({
   declarations: [FooterComponent, HeaderComponent, NavigatorComponent, ShellComponent,
-     PasswordComponent, CommonAlertComponent],
+    PasswordComponent, CommonAlertComponent],
   imports: [
     CommonModule,
     CoreModule,

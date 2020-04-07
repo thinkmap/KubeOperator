@@ -1,6 +1,5 @@
 import {Component, EventEmitter, OnInit, Output, ViewChild} from '@angular/core';
-import {CloudTemplate, Region} from '../../region/region';
-import {CloudTemplateService} from '../../region/cloud-template.service';
+import {Region} from '../../region/region';
 import {RegionService} from '../../region/region.service';
 import {CloudService} from '../../region/cloud.service';
 import {ComputeModel, Plan} from '../plan';
@@ -10,6 +9,9 @@ import {PlanService} from '../plan.service';
 import {NgForm} from '@angular/forms';
 import {ClrWizard} from '@clr/angular';
 import {catchError} from 'rxjs/operators';
+import * as globals from '../../globals';
+import {ItemService} from "../../item/item.service";
+
 
 @Component({
   selector: 'app-plan-create',
@@ -31,9 +33,13 @@ export class PlanCreateComponent implements OnInit {
   @ViewChild('basicForm', {static: true}) basicForm: NgForm;
   @ViewChild('planForm', {static: true}) planForm: NgForm;
   @ViewChild('wizard', {static: true}) wizard: ClrWizard;
+  name_pattern = globals.host_name_pattern;
+  name_pattern_tip = globals.host_name_pattern_tip;
+  items = [];
 
   constructor(private regionService: RegionService,
-              private cloudService: CloudService, private zoneService: ZoneService, private planService: PlanService) {
+              private cloudService: CloudService, private zoneService: ZoneService,
+              private planService: PlanService, private itemService: ItemService) {
   }
 
   ngOnInit() {
@@ -51,6 +57,7 @@ export class PlanCreateComponent implements OnInit {
     this.listRegion();
     this.listComputeModel();
     this.createOpened = true;
+    this.listItems();
   }
 
   listRegion() {
@@ -80,9 +87,9 @@ export class PlanCreateComponent implements OnInit {
     this.regions.forEach(region => {
       if (this.item.region === region.name) {
         this.region = region;
-          if(this.region.template === 'openstack'){
-            this.setFlavorModels()
-          }
+        if (this.region.template === 'openstack') {
+          this.setFlavorModels();
+        }
       }
     });
   }
@@ -112,8 +119,8 @@ export class PlanCreateComponent implements OnInit {
       return;
     }
     this.isSubmitGoing = true;
-    if(this.region.template === 'openstack'){
-      this.item.vars['compute_models'] = this.computeModels
+    if (this.region.template === 'openstack') {
+      this.item.vars['compute_models'] = this.computeModels;
     }
     this.planService.createPlan(this.item).subscribe(data => {
       this.isSubmitGoing = false;
@@ -126,4 +133,9 @@ export class PlanCreateComponent implements OnInit {
     this.createOpened = false;
   }
 
+  listItems() {
+    this.itemService.listItem().subscribe(data => {
+      this.items = data;
+    });
+  }
 }

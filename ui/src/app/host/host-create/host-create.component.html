@@ -5,12 +5,22 @@
     <form clrForm #hostForm='ngForm'>
       <clr-input-container>
         <label>名称:</label>
-        <input clrInput size=45 type="text" [(ngModel)]="host.name" name="name" required>
+        <input clrInput size=45 maxlength="15" type="text" [(ngModel)]="host.name" name="name" required
+               pattern="{{name_pattern}}">
+        <clr-control-helper>{{name_pattern_tip}}</clr-control-helper>
+        <clr-control-error>{{name_pattern_tip}}</clr-control-error>
       </clr-input-container>
 
       <clr-input-container>
         <label>Ip:</label>
         <input clrInput size=45 type="text" [(ngModel)]="host.ip" name="ip" required>
+        <clr-control-helper>KubeOperator部署机不能作为kubernetes集群节点使用</clr-control-helper>
+        <clr-control-error>KubeOperator部署机不能作为kubernetes集群节点使用</clr-control-error>
+      </clr-input-container>
+
+      <clr-input-container>
+        <label>端口:</label>
+        <input clrInput size=45 type="number" max="65535" [(ngModel)]="host.port" name="port" required>
       </clr-input-container>
 
       <clr-select-container>
@@ -23,7 +33,7 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" (click)="onCancel()" [disabled]="isSubmitGoing">取消</button>
         <button type="submit" class="btn btn-primary" (click)="onSubmit()"
-                [disabled]="isSubmitGoing || hostForm.invalid">
+                [disabled]="isSubmitGoing || hostForm.invalid || localIp===host.ip">
           <i *ngIf="isSubmitGoing " class="fa fa-spinner fa-pulse"></i>提交
         </button>
       </div>

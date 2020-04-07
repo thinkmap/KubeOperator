@@ -1,0 +1,13 @@
+- hosts: all_nodes
+  roles:
+    - ssh
+    - repository
+    - firewall
+- hosts: cluster_nodes
+  roles:
+    - rpm
+    - nameserver
+
+- hosts: kube-node
+  roles:
+    - ntp

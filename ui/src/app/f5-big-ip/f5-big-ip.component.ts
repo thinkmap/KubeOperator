@@ -3,6 +3,8 @@ import {Cluster} from '../cluster/cluster';
 import {ActivatedRoute, Router} from '@angular/router';
 import {ClusterService} from '../cluster/cluster.service';
 import {OperaterService} from '../deploy/component/operater/operater.service';
+import {SessionService} from '../shared/session.service';
+
 
 @Component({
   selector: 'app-f5-big-ip',
@@ -12,15 +14,19 @@ import {OperaterService} from '../deploy/component/operater/operater.service';
 export class F5BigIpComponent implements OnInit {
 
   currentCluster: Cluster;
+  permission: string;
+
 
   constructor(private route: ActivatedRoute, private clusterService: ClusterService,
-              private router: Router, private operaterService: OperaterService) {
+              private router: Router, private operaterService: OperaterService,
+              private sessionService: SessionService) {
   }
 
 
   ngOnInit() {
     this.route.parent.data.subscribe(data => {
       this.currentCluster = data['cluster'];
+      this.permission = this.sessionService.getItemPermission(this.currentCluster.item_name);
       this.refreshCluster();
     });
   }
@@ -41,7 +47,7 @@ export class F5BigIpComponent implements OnInit {
 
   redirect(url: string) {
     if (url) {
-      const linkUrl = ['kubeOperator', 'cluster', this.currentCluster.name, url];
+      const linkUrl = ['cluster', this.currentCluster.name, url];
       this.router.navigate(linkUrl);
     }
   }

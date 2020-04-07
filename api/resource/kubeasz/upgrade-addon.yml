@@ -1,4 +1,0 @@
-- hosts: worker
-  tasks:
-    - name: ping
-      ping:

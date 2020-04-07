@@ -39,8 +39,23 @@ export class StatusPipe implements PipeTransform {
         case 'WARNING':
           result = '告警';
           break;
+        case 'ADDING':
+          result = '扩容中';
+          break;
+        case 'BACKUP':
+          result = '备份中';
+          break;
+        case 'RESTORING':
+          result = '恢复中';
+          break;
+        case 'Running':
+          result = '运行中';
+          break;
+        case 'True':
+          result = '运行中';
+          break;
         default:
-          result = '未知';
+          result = value;
       }
     }
     return result;
