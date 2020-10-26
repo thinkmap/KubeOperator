@@ -1,0 +1,21 @@
+<clr-modal [(clrModalOpen)]="opened">
+    <h3 class="modal-title">{{'APP_ADD'|translate}}{{'APP_LICENSE'|translate}}</h3>
+    <div class="modal-body modal-height">
+        <form clrForm #itemForm="ngForm" enctype="multipart/form-data">
+            <div class="clr-form-control">
+                <label class="clr-control-label"></label>
+                <div class="clr-control-container">
+                    <div class="clr-file-wrapper">
+                        <input type="file" id="basic-default" placeholder="Enter value here"
+                               (change)="upload($event)" required/>
+                    </div>
+                    <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-primary" (click)="onSubmit()"
+                [disabled]="itemForm.invalid || file == null">{{"APP_COMMIT"|translate}}</button>
+    </div>
+</clr-modal>

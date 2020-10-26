@@ -1,0 +1,360 @@
+<clr-wizard #wizard [(clrWizardOpen)]="opened" [clrWizardClosable]="false" (clrWizardOnCancel)="onCancel()">
+    <clr-wizard-title>{{'APP_ZONE_CREATE'|translate}}</clr-wizard-title>
+
+    <clr-wizard-button [type]="'cancel'">{{'APP_CANCEL'|translate}}</clr-wizard-button>
+    <clr-wizard-button [type]="'previous'">{{'APP_BACK'|translate}}</clr-wizard-button>
+    <clr-wizard-button [type]="'next'">{{'APP_NEXT'|translate}}</clr-wizard-button>
+    <clr-wizard-button [type]="'finish'">{{'APP_FINISH'|translate}}</clr-wizard-button>
+
+    <clr-wizard-page [clrWizardPageNextDisabled]="basicForm.invalid" (clrWizardPageOnCommit)="listClusters()">
+        <ng-template clrPageTitle>{{'APP_BASIC_INFORMATION'|translate}}</ng-template>
+        <form clrForm #basicForm="ngForm">
+            <clr-input-container>
+                <label>{{'APP_NAME'|translate}}</label>
+                <input clrInput size=45 maxlength="15" type="text" [(ngModel)]="item.name" pattern="{{namePattern}}"
+                       name="name" required>
+                <clr-control-helper>{{namePatternHelper}}</clr-control-helper>
+                <clr-control-error>{{namePatternHelper}}</clr-control-error>
+            </clr-input-container>
+            <clr-select-container>
+                <label>{{'APP_REGION'|translate}}</label>
+                <select clrSelect [(ngModel)]="item.regionName" name="provider" required
+                        (ngModelChange)="changeRegion()">
+                    <option value="">{{'APP_DEFAULT_OPTION'|translate}}</option>
+                    <option *ngFor="let region of regions" [value]="region.name">{{region.name}}</option>
+                </select>
+                <clr-control-error>{{'APP_REQUIRED_ERROR'|translate}}</clr-control-error>
+            </clr-select-container>
+        </form>
+    </clr-wizard-page>
+    <clr-wizard-page [clrWizardPageNextDisabled]="paramsForm.invalid" #finishPage
+                     (clrWizardPageCustomButton)="onSubmit()">
+        <ng-template clrPageTitle>{{'APP_REGION_PARAM_CONFIG'|translate}}</ng-template>
+        <clr-spinner *ngIf="loading">loading</clr-spinner>
+        <form clrForm #paramsForm="ngForm">
+            <div *ngIf="cloudZones.length>0">
+
+                <div *ngIf="region.regionVars['provider'] === 'vSphere'">
+                    <h3>{{'APP_COPMUTE'|translate}}</h3>
+                    <hr/>
+                    <clr-select-container>
+                        <label>{{'APP_CLUSTER'|translate}}</label>
+                        <select [(ngModel)]="item.cloudVars['cluster']" name="compute"
+                                (ngModelChange)="changeCloudZone()" required clrSelect>
+                            <option value="">{{'APP_DEFAULT_OPTION'|translate}}</option>
+                            <option *ngFor="let zone of cloudZones" [value]="zone.cluster">{{zone.cluster}}</option>
+                        </select>
+                        <clr-control-error>{{'APP_REQUIRED_ERROR'|translate}}</clr-control-error>
+                        <clr-control-helper>{{'APP_RESOURCE_POOL_HELPER'|translate}}</clr-control-helper>
+                    </clr-select-container>
+                    <div *ngIf="cloudZone">
+                        <clr-select-container>
+                            <label>{{'APP_RESOURCE_POOL'|translate}}</label>
+                            <select [(ngModel)]="item.cloudVars['resourcePool']" name="resourcePool" required clrSelect>
+                                <option value="">{{'APP_DEFAULT_OPTION'|translate}}</option>
+                                <option *ngFor="let rp of cloudZone.resourcePools" [value]='rp'>{{rp}}</option>
+                            </select>
+                            <clr-control-error>{{'APP_REQUIRED_ERROR'|translate}}</clr-control-error>
+                            <clr-control-helper>{{'APP_RESOURCE_POOL_HELPER'|translate}}</clr-control-helper>
+                        </clr-select-container>
+                    </div>
+                    <div *ngIf="item.cloudVars['resourcePool']">
+                        <h3>{{'APP_DATASTORE'|translate}}</h3>
+                        <hr/>
+                        <clr-select-container>
+                            <label>{{'APP_DATASTORE'|translate}}</label>
+                            <select [(ngModel)]="item.cloudVars['datastore']" name="datastore" required clrSelect>
+                                <option value="">{{'APP_DEFAULT_OPTION'|translate}}</option>
+                                <option *ngFor="let datastore of cloudZone.datastores"
+                                        [value]="datastore">{{datastore}}</option>
+                            </select>
+                            <clr-control-error>{{'APP_REQUIRED_ERROR'|translate}}</clr-control-error>
+                            <clr-control-helper>{{'APP_DATASTORE_HELPER'|translate}}</clr-control-helper>
+                        </clr-select-container>
+                    </div>
+                    <div *ngIf="item.cloudVars['datastore']">
+                        <h3>{{'APP_TEMPLATE'|translate}}</h3>
+                        <hr/>
+                        <clr-radio-container clrInline>
+                            <label>{{'APP_TEMPLATE_TYPE'|translate}}</label>
+                            <clr-radio-wrapper>
+                                <input type="radio" clrRadio name="templateType" required value="default"
+                                       checked="checked"
+                                       [(ngModel)]="item.cloudVars['templateType']"/>
+                                <label>{{'APP_DEFAULT'|translate}}</label>
+                            </clr-radio-wrapper>
+                            <clr-radio-wrapper>
+                                <input type="radio" clrRadio name="templateType" required value="customize"
+                                       [(ngModel)]="item.cloudVars['templateType']"
+                                       (ngModelChange)="listTemplates()"/>
+                                <label>{{'APP_CUSTOMIZE'|translate}}</label>
+                            </clr-radio-wrapper>
+                            <clr-control-helper>
+                                <span *ngIf="item.cloudVars['templateType'] === 'customize'"> {{'APP_TEMPLATE_CUSTOMIZE_HELPER'|translate}}</span>
+                                <span *ngIf="item.cloudVars['templateType'] === 'default'">{{'APP_TEMPLATE_DEFAULT_HELPER'|translate}}</span>
+                            </clr-control-helper>
+                        </clr-radio-container>
+                        <div *ngIf="item.cloudVars['templateType'] === 'customize'">
+                            <clr-spinner *ngIf="templateLoading">loading</clr-spinner>
+                            <div *ngIf="!templateLoading">
+                                <clr-select-container>
+                                    <label>{{'APP_TEMPLATE'|translate}}</label>
+                                    <select [(ngModel)]="item.cloudVars['imageName']" name="template" required
+                                            clrSelect>
+                                        <option value=''>{{'APP_DEFAULT_OPTION'|translate}}</option>
+                                        <option *ngFor="let temp of cloudTemplates"
+                                                [value]=temp.imageName>{{temp.imageName}}</option>
+                                    </select>
+                                    <clr-control-error>{{'APP_REQUIRED_ERROR'|translate}}</clr-control-error>
+                                </clr-select-container>
+                                <clr-select-container>
+                                    <label>{{'APP_TEMPLATE_PASSWORD'|translate}}</label>
+                                    <select [(ngModel)]="item.credentialId" name="credential" required clrSelect>
+                                        <option value=''>{{'APP_DEFAULT_OPTION'|translate}}</option>
+                                        <option *ngFor="let credential of credentials"
+                                                [value]=credential.id>{{credential.name}}</option>
+                                    </select>
+                                    <clr-control-error>{{'APP_REQUIRED_ERROR'|translate}}</clr-control-error>
+                                    <clr-control-helper>{{'APP_TEMPLATE_PASSWORD_HELPER'|translate}}</clr-control-helper>
+                                </clr-select-container>
+                            </div>
+                        </div>
+
+                        <h3>{{'APP_NETWORK'|translate}}</h3>
+                        <hr/>
+                        <clr-select-container>
+                            <label>{{'APP_NETWORK_ADAPTER'|translate}}</label>
+                            <select [(ngModel)]="item.cloudVars['network']" name="network" required clrSelect>
+                                <option value=''>{{'APP_DEFAULT_OPTION'|translate}}</option>
+                                <option *ngFor="let network of cloudZone.networks"
+                                        [value]="network">{{network}}</option>
+                            </select>
+                            <clr-control-error>{{'APP_REQUIRED_ERROR'|translate}}</clr-control-error>
+                            <clr-control-helper>{{'APP_NETWORK_HELPER'|translate}}</clr-control-helper>
+                        </clr-select-container>
+
+                        <clr-input-container>
+                            <label>{{'APP_SUBNET'|translate}}</label>
+                            <input clrInput size=45 type="text" [(ngModel)]="item.cloudVars['subnet']" name="subnet"
+                                   required>
+                            <clr-control-error>{{'APP_REQUIRED_ERROR'|translate}}</clr-control-error>
+                            <clr-control-helper>{{'APP_SUBNET_HELPER'|translate}}</clr-control-helper>
+                        </clr-input-container>
+
+
+                        <clr-input-container>
+                            <label>{{'APP_IP_START'|translate}}</label>
+                            <input clrInput size=45 type="text" [(ngModel)]="item.cloudVars['ipStart']" name="ipStart"
+                                   required>
+                            <clr-control-error>{{'APP_REQUIRED_ERROR'|translate}}</clr-control-error>
+                            <clr-control-helper>{{'APP_IP_START_HELPER'|translate}}</clr-control-helper>
+                        </clr-input-container>
+
+                        <clr-input-container>
+                            <label>{{'APP_IP_END'|translate}}</label>
+                            <input clrInput size=45 type="text" [(ngModel)]="item.cloudVars['ipEnd']" name="ipEnd"
+                                   required>
+                            <clr-control-error>{{'APP_REQUIRED_ERROR'|translate}}</clr-control-error>
+                            <clr-control-helper>{{'APP_IP_END_HELPER'|translate}}</clr-control-helper>
+                        </clr-input-container>
+
+                        <clr-input-container>
+                            <label>{{'APP_NETWORK_GATEWAY'|translate}}</label>
+                            <input clrInput size=45 type="text" [(ngModel)]="item.cloudVars['gateway']" name="gateway"
+                                   required>
+                            <clr-control-error>{{'APP_REQUIRED_ERROR'|translate}}</clr-control-error>
+                            <clr-control-helper>{{'APP_GATEWAY_HELPER'|translate}}</clr-control-helper>
+                        </clr-input-container>
+                        <clr-input-container>
+                            <label>{{'APP_NETWORK_DNS1'|translate}}</label>
+                            <input clrInput size=45 type="text" [(ngModel)]="item.cloudVars['dns1']" name="dns1"
+                                   required>
+                            <clr-control-error>{{'APP_REQUIRED_ERROR'|translate}}</clr-control-error>
+                            <clr-control-helper>{{'APP_NETWORK_DNS_HELPER'|translate}}</clr-control-helper>
+                        </clr-input-container>
+
+                        <clr-input-container>
+                            <label>{{'APP_NETWORK_DNS2'|translate}}</label>
+                            <input clrInput size=45 type="text" [(ngModel)]="item.cloudVars['dns2']" name="dns2"
+                                   required>
+                            <clr-control-error>{{'APP_REQUIRED_ERROR'|translate}}</clr-control-error>
+                            <clr-control-helper>{{'APP_NETWORK_DNS_HELPER'|translate}}</clr-control-helper>
+                        </clr-input-container>
+                    </div>
+                </div>
+
+                <div *ngIf="region.regionVars['provider'] === 'OpenStack'">
+                    <h3>{{'APP_COPMUTE'|translate}}</h3>
+                    <hr/>
+                    <clr-select-container>
+                        <label>{{'APP_ZONE'|translate}}</label>
+                        <select [(ngModel)]="item.cloudVars['cluster']" name="compute"
+                                (ngModelChange)="changeCloudZone()"
+                                clrSelect required>
+                            <option value=''>{{'APP_DEFAULT_OPTION'|translate}}</option>
+                            <option *ngFor="let zone of cloudZones"
+                                    [value]="zone.cluster">{{zone.cluster}}</option>
+                        </select>
+                        <clr-control-error>{{'APP_REQUIRED_ERROR'|translate}}</clr-control-error>
+                        <clr-control-helper>{{'APP_OPENSTACK_ZONE_HELPER'|translate}}</clr-control-helper>
+                    </clr-select-container>
+                    <div *ngIf="cloudZone">
+                        <h3>{{'APP_DATASTORE'|translate}}</h3>
+                        <hr/>
+                        <clr-select-container>
+                            <label>{{'APP_OPENSTACK_STORAGE_TYPE'|translate}}</label>
+                            <select [(ngModel)]="item.cloudVars['storageType']" name="storage"
+                                    clrSelect required>
+                                <option value=''>{{'APP_DEFAULT_OPTION'|translate}}</option>
+                                <option *ngFor="let storage of cloudZone.storages"
+                                        [value]="storage.id">{{storage.name}}</option>
+                            </select>
+                            <clr-control-error>{{'APP_REQUIRED_ERROR'|translate}}</clr-control-error>
+                            <clr-control-helper>{{'APP_OPENSTACK_STORAGE_TYPE_HELPER'|translate}}</clr-control-helper>
+                        </clr-select-container>
+
+                        <h3>{{'APP_TEMPLATE'|translate}}</h3>
+                        <hr/>
+                        <clr-radio-container clrInline>
+                            <label>{{'APP_TEMPLATE_TYPE'|translate}}</label>
+                            <clr-radio-wrapper>
+                                <input type="radio" clrRadio name="templateType" required value="default"
+                                       checked="checked"
+                                       [(ngModel)]="item.cloudVars['templateType']"/>
+                                <label>{{'APP_DEFAULT'|translate}}</label>
+                            </clr-radio-wrapper>
+                            <clr-radio-wrapper>
+                                <input type="radio" clrRadio name="templateType" required value="customize"
+                                       [(ngModel)]="item.cloudVars['templateType']"
+                                       (ngModelChange)="listTemplates()"/>
+                                <label>{{'APP_CUSTOMIZE'|translate}}</label>
+                            </clr-radio-wrapper>
+                            <clr-control-helper
+                                    *ngIf="item.cloudVars['templateType'] === 'customize'">{{'APP_TEMPLATE_CUSTOMIZE_HELPER'|translate}}</clr-control-helper>
+                            <clr-control-helper
+                                    *ngIf="item.cloudVars['templateType'] === 'default'">{{'APP_TEMPLATE_CUSTOMIZE_HELPER'|translate}}</clr-control-helper>
+                        </clr-radio-container>
+                        <div *ngIf="item.cloudVars['templateType'] === 'customize'">
+                            <clr-spinner *ngIf="templateLoading">loading</clr-spinner>
+                            <div *ngIf="!templateLoading">
+                                <clr-select-container>
+                                    <label>{{'APP_TEMPLATE'|translate}}</label>
+                                    <select [(ngModel)]="item.cloudVars['imageName']" name="template" required
+                                            clrSelect>
+                                        <option value=''>{{'APP_DEFAULT_OPTION'|translate}}</option>
+                                        <option *ngFor="let temp of cloudTemplates"
+                                                [value]=temp.imageName>{{temp.imageName}}</option>
+                                    </select>
+                                    <clr-control-error>{{'APP_REQUIRED_ERROR'|translate}}</clr-control-error>
+                                </clr-select-container>
+
+                                <clr-select-container>
+                                    <label>{{'APP_TEMPLATE_PASSWORD'|translate}}</label>
+                                    <select [(ngModel)]="item.credentialId" name="credential" required clrSelect>
+                                        <option value=''>{{'APP_DEFAULT_OPTION'|translate}}</option>
+                                        <option *ngFor="let credential of credentials"
+                                                [value]=credential.id>{{credential.name}}</option>
+                                    </select>
+                                    <clr-control-error>{{'APP_REQUIRED_ERROR'|translate}}</clr-control-error>
+                                    <clr-control-helper>{{'APP_TEMPLATE_PASSWORD_HELPER'|translate}}</clr-control-helper>
+                                </clr-select-container>
+                            </div>
+                        </div>
+
+                        <h3>{{'APP_NETWORK'|translate}}</h3>
+                        <hr/>
+                        <clr-select-container>
+                            <label>{{'APP_OPENSTACK_SECURITY_GROUP'|translate}}</label>
+                            <select [(ngModel)]="item.cloudVars['securityGroup']" name="sg" clrSelect required>
+                                <option value=''>{{'APP_DEFAULT_OPTION'|translate}}</option>
+                                <option *ngFor="let sg of cloudZone.securityGroups" [value]="sg">{{sg}}</option>
+                            </select>
+                            <clr-control-error>{{'APP_REQUIRED_ERROR'|translate}}</clr-control-error>
+                            <clr-control-helper>{{'APP_OPENSTACK_SECURITY_GROUP_HELPER'|translate}}</clr-control-helper>
+                        </clr-select-container>
+                        <clr-select-container>
+                            <label>{{'APP_NETWORK'|translate}}</label>
+                            <select [(ngModel)]="item.cloudVars['network']" name="network" clrSelect
+                                    (ngModelChange)="changeNetwork()"
+                                    required>
+                                <option value=''>{{'APP_DEFAULT_OPTION'|translate}}</option>
+                                <option *ngFor="let network of cloudZone.networkList"
+                                        [value]="network.id">{{network.name}}</option>
+                            </select>
+                            <clr-control-error>{{'APP_REQUIRED_ERROR'|translate}}</clr-control-error>
+                            <clr-control-helper>{{'APP_OPENSTACK_NETWORK_HELPER'|translate}}</clr-control-helper>
+                        </clr-select-container>
+
+                        <clr-select-container>
+                            <label>{{'APP_OPENSTACK_IPTYPE'|translate}}</label>
+                            <select [(ngModel)]="item.cloudVars['ipType']" name="ip_type" clrSelect required>
+                                <option value=''>{{'APP_DEFAULT_OPTION'|translate}}</option>
+                                <option *ngFor="let type of cloudZone.ipTypes" [value]="type">{{type}}</option>
+                            </select>
+                            <clr-control-error>{{'APP_REQUIRED_ERROR'|translate}}</clr-control-error>
+                            <clr-control-helper>{{'APP_OPENSTACK_IPTYPE_HELPER'|translate}}</clr-control-helper>
+                        </clr-select-container>
+
+                        <clr-select-container *ngIf="item.cloudVars['ipType'] === 'private'">
+                            <label>{{'APP_OPENSTACK_SUBNET'|translate}}</label>
+                            <select [(ngModel)]="item.cloudVars['subnet']" name="subnet" clrSelect required>
+                                <option value=''>{{'APP_DEFAULT_OPTION'|translate}}</option>
+                                <option *ngFor="let subnet of subnetList" [value]="subnet.id">{{subnet.name}}</option>
+                            </select>
+                            <clr-control-error>{{'APP_REQUIRED_ERROR'|translate}}</clr-control-error>
+                            <clr-control-helper>{{'APP_OPENSTACK_SUBNET_HELPER'|translate}}</clr-control-helper>
+                        </clr-select-container>
+
+                        <clr-select-container *ngIf="item.cloudVars['ipType'] === 'floating'">
+                            <label>{{'APP_OPENSTACK_FLOATING_IP'|translate}}</label>
+                            <select [(ngModel)]="item.cloudVars['floatingNetwork']" name="floatingNetwork" clrSelect
+                                    required>
+                                <option value=''>{{'APP_DEFAULT_OPTION'|translate}}</option>
+                                <option *ngFor="let network of cloudZone.floatingNetworkList"
+                                        [value]="network.name">{{network.name}}</option>
+                            </select>
+                            <clr-control-error>{{'APP_REQUIRED_ERROR'|translate}}</clr-control-error>
+                            <clr-control-helper>{{'APP_OPENSTACK_FLOATING_IP_HELPER'|translate}}</clr-control-helper>
+                        </clr-select-container>
+
+                        <clr-input-container>
+                            <label>{{'APP_IP_START'|translate}}</label>
+                            <input clrInput size=45 type="text" [(ngModel)]="item.cloudVars['ipStart']" name="ipStart"
+                                   required>
+                            <clr-control-error>{{'APP_REQUIRED_ERROR'|translate}}</clr-control-error>
+                            <clr-control-helper>{{'APP_IP_START_HELPER'|translate}}</clr-control-helper>
+                        </clr-input-container>
+
+                        <clr-input-container>
+                            <label>{{'APP_IP_END'|translate}}</label>
+                            <input clrInput size=45 type="text" [(ngModel)]="item.cloudVars['ipEnd']" name="ipEnd"
+                                   required>
+                            <clr-control-error>{{'APP_REQUIRED_ERROR'|translate}}</clr-control-error>
+                            <clr-control-helper>{{'APP_IP_END_HELPER'|translate}}</clr-control-helper>
+                        </clr-input-container>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <ng-template clrPageButtons>
+            <clr-wizard-button [type]="'cancel'">{{'APP_CANCEL'|translate}}</clr-wizard-button>
+            <clr-wizard-button [type]="'previous'">{{'APP_BACK'|translate}}</clr-wizard-button>
+            <clr-wizard-button [type]="'custom-finish'"
+                               [clrWizardButtonDisabled]="!networkValid">{{'APP_FINISH'|translate}}</clr-wizard-button>
+        </ng-template>
+        <div>
+            <div>
+                <button class="btn" (click)="checkNetwork()"
+                        [disabled]="paramsForm.invalid">{{'APP_IP_CHECK'|translate}}</button>
+            </div>
+            <ul>
+                <li *ngFor="let error of networkError">{{error}}</li>
+            </ul>
+            <span *ngIf="networkValid">{{'APP_IP_CHECK_SUCCESS'|translate}}</span>
+        </div>
+        <app-modal-alert></app-modal-alert>
+    </clr-wizard-page>
+</clr-wizard>
+
+
+

@@ -56,35 +56,68 @@ Release Note: https://blog.fit2cloud.com/?p=1032
 
 Release Note:https://blog.fit2cloud.com/?p=1087
 
- ##  v2.5 （开发中，20120.04.13 发布）
+ ##  v2.5 （已发布）
  
-- [ ] LDAP/AD 对接; 
-- [ ] 消息中心；
-- [ ] 应用商店增加 [Argo CD](https://github.com/argoproj/argo-cd)，完整覆盖 CI 到 CD 的场景；
-- [ ] 集群健康评分;
-- [ ] 将部分内置应用移到应用商店；
-- [ ] 支持 ingress-nginx，用户可选 ingress-nginx 或者 Traefik
-- [ ] Excel批量导入主机；
-- [ ] 手动模式集群批量扩容；
+- [x] LDAP/AD 对接; 
+- [x] 消息中心；
+- [x] 应用商店增加 [Argo CD](https://github.com/argoproj/argo-cd)，完整覆盖 CI 到 CD 的场景；
+- [x] 集群健康评分;
+- [x] 将部分内置应用移到应用商店；
+- [x] 支持 ingress-nginx，用户可选 ingress-nginx 或者 Traefik
+- [x] Excel批量导入主机；
+- [x] 手动模式集群批量扩容；
 
- ##  Backlog
+Release Note: https://blog.fit2cloud.com/?p=1126
+
+ ##  v2.6 （已发布）
+
+- [x] 集成 [CIS 安全扫描](https://github.com/aquasecurity/kube-bench)；
+- [x] 应用商店改成可选安装；
+- [x] 支持 RHEL 7.4 以上操作系统；
+- [x] vSphere 创建虚机时支持选用自有模板；
+- [x] 支持更新 apiserver 证书。
+
+Release Note: https://blog.fit2cloud.com/?p=1219
+
+ ##  v3.0 （已发布）
  
-- [ ] 已有集群导入；
-- [ ] 国际化支持；
-- [ ] Helm 3.0 支持；
-- [ ] Traefik 2.0 支持；
-- [ ] 全容器化部署;
-- [ ] Deprecate in-tree OpenStack and vSphere cloud controller；
-- [ ] 自定义证书支持；
-- [ ] 开放 REST API; 
-- [ ] K8s 集群 API Server 的 高可用（ VIP ） 
-- [ ] 外部存储支持 NetApp 存储（通过 [Trident](https://github.com/NetApp/trident)）； 
-- [ ] 使用 [Sonobuoy](https://github.com/vmware-tanzu/sonobuoy) 进行 Kubernetes 集群合规检查并可视化展示结果；
-- [ ] 支持 VMware NSX-T；
-- [ ] 支持 containerd，用户可选 docker 或者 containerd
-- [ ] 应用商店增加 [JumpServer 堡垒机](https://github.com/jumpserver/jumpserver)；
-- [ ] 支持 ARM 64（鲲鹏） 
-- [ ] K8s 跨版本升级（应用可能会受影响）
-- [ ] 集成 [CIS 安全扫描](https://github.com/aquasecurity/kube-bench)
-- [ ] 集群运维 - 执行脚本
-- [ ] 应用商店改成可选安装
+- [x] 开放 REST API;
+- [x] 支持 国际化 i18n；
+- [x] 支持 kubeadm 部署；
+- [x] 支持 arm64 平台架构；
+- [x] 支持在线和离线安装模式；
+- [x] 组件升级，包括 Helm 3.x、Traefik 2.x、Kubeapps等；
+- [x] 集成 cert-manager；
+- [x] 支持 containerd；
+- [x] 支持已有集群导入。
+
+Release Note: https://blog.fit2cloud.com/?p=1416
+
+ ##  v3.1 （已发布）
+ 
+ - [x] K8s 版本历史及集群版本升级功能优化；
+ - [x] 集成 CIS 安全扫描；
+ - [x] 集群事件；
+ - [x] 集群 ETCD 定时备份和自定义恢复；
+ - [x] 自定义 Logo 和 配色 （X-Pack）；
+ - [x] LDAP 对接（X-Pack）；
+ 
+ Release Note: https://blog.fit2cloud.com/?p=1480
+ 
+  ##  v3.2 （已发布）
+ 
+ - [x] 增加消息中心（X-Pack）；
+ - [x] 支持邮箱、钉钉、企业微信告警（X-Pack）；
+ - [x] 支持实时查看任务执行返回日志；
+ - [x] 应用商店增加 Redmine；
+ 
+ ## v3.3 (开发中)
+
+ - [ ] 集群日志，支持 Loki 或者 EFK；
+ - [ ] FusionCompute 支持自动部署模式；
+ - [ ] FusionStorage CSI 支持；
+ - [ ] 集群健康评估（X-Pack）；
+ - [ ] GPU 支持；
+ - [ ] F5 对接（X-Pack）；
+ - [ ] 多集群配置管理（X-Pack）；
+ - [ ] 应用商店增加 Kuboard；

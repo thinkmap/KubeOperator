@@ -1,25 +1,28 @@
-import {Pipe, PipeTransform} from '@angular/core';
+import { Pipe, PipeTransform } from '@angular/core';
+import {TranslateService} from '@ngx-translate/core';
 
 @Pipe({
   name: 'messageType'
 })
 export class MessageTypePipe implements PipeTransform {
 
-  transform(value: any, ...args: any[]): any {
+  constructor(private translateService: TranslateService) {
+
+  }
+    transform(value: any, ...args: any[]): any {
     let result = null;
     if (value) {
       switch (value) {
         case 'CLUSTER':
-          result = '集群消息';
+          result = this.translateService.instant('APP_MSG_CLUSTER');
           break;
         case 'SYSTEM':
-          result = '系统消息';
+          result = this.translateService.instant('APP_MSG_SYSTEM');
           break;
         default:
-          result = '系统消息';
+          result = this.translateService.instant('APP_MSG_SYSTEM');
       }
     }
     return result;
   }
-
 }

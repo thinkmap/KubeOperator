@@ -1,153 +1,175 @@
 import {NgModule} from '@angular/core';
 import {Routes, RouterModule} from '@angular/router';
-import {ShellComponent} from './base/shell/shell.component';
-import {NotFoundComponent} from './shared/not-found/not-found.component';
-import {SignInComponent} from './account/sign-in/sign-in.component';
-import {AuthUserActiveService} from './shared/route/auth-user-active.service';
-import {PackageComponent} from './package/package.component';
-import {UserComponent} from './user/user.component';
-import {ClusterComponent} from './cluster/cluster.component';
-import {ClusterDetailComponent} from './cluster/cluster-detail/cluster-detail.component';
-import {OverviewComponent} from './overview/overview.component';
-import {NodeComponent} from './node/node.component';
-import {LogComponent} from './log/log.component';
-import {ClusterRoutingResolverService} from './cluster/cluster-routing-resolver.service';
-import {HostComponent} from './host/host.component';
-import {DeployComponent} from './deploy/deploy.component';
-import {SettingComponent} from './setting/setting.component';
-import {SystemSettingComponent} from './setting/system-setting/system-setting.component';
-import {CredentialComponent} from './credential/credential.component';
-import {RegionComponent} from './region/region.component';
-import {ZoneComponent} from './zone/zone.component';
-import {PlanComponent} from './plan/plan.component';
-import {F5BigIpComponent} from './f5-big-ip/f5-big-ip.component';
-import {DeployPlanComponent} from './deploy-plan/deploy-plan.component';
-import {ClusterHealthComponent} from './cluster-health/cluster-health.component';
-import {ApplicationComponent} from './application/application.component';
-import {ClusterBackupComponent} from './cluster-backup/cluster-backup.component';
-import {BackupStorageSettingComponent} from './setting/backup-storage-setting/backup-storage-setting.component';
-import {NfsComponent} from './nfs/nfs.component';
-import {StorageComponent} from './storage/storage.component';
-import {DashboardComponent} from './dashboard/dashboard.component';
-import {SystemLogComponent} from './system-log/system-log.component';
-import {DnsComponent} from './dns/dns.component';
-import {ClusterStorageComponent} from './cluster-storage/cluster-storage.component';
-import {ClusterEventComponent} from './cluster-event/cluster-event.component';
-import {CephComponent} from './ceph/ceph.component';
-import {ItemComponent} from './item/item.component';
-import {ItemDetailComponent} from './item/item-detail/item-detail.component';
-import {ItemRoutingResolverService} from './item/item-routing-resolver.service';
-import {ItemMemberComponent} from './item-member/item-member.component';
-import {ItemResourceComponent} from './item-resource/item-resource.component';
-import {LdapComponent} from './setting/ldap/ldap.component';
-import {NotificationComponent} from './setting/notification/notification.component';
-import {MessageCenterComponent} from './message-center/message-center.component';
-import {LocalMailComponent} from './message-center/local-mail/local-mail.component';
-import {DescribeComponent} from './overview/describe/describe.component';
-import {SubscribeComponent} from './message-center/subscribe/subscribe.component';
-import {ReceiverComponent} from './message-center/receiver/receiver.component';
-import {ClusterGradeComponent} from './cluster-grade/cluster-grade.component';
+import {LoginComponent} from './login/login.component';
+import {LayoutComponent} from './layout/layout.component';
+import {ClusterComponent} from './business/cluster/cluster.component';
+import {ClusterDetailComponent} from './business/cluster/cluster-detail/cluster-detail.component';
+import {ClusterRoutingResolverService} from './business/cluster/cluster-routing-resolver.service';
+import {OverviewComponent} from './business/cluster/cluster-detail/overview/overview.component';
+import {SettingComponent} from './business/setting/setting.component';
+import {CredentialComponent} from './business/setting/credential/credential.component';
+import {HostComponent} from './business/host/host.component';
+import {NodeComponent} from './business/cluster/cluster-detail/node/node.component';
+import {NamespaceComponent} from './business/cluster/cluster-detail/namespace/namespace.component';
+import {StorageComponent} from './business/cluster/cluster-detail/storage/storage.component';
+import {PersistentVolumeComponent} from './business/cluster/cluster-detail/storage/persistent-volume/persistent-volume.component';
+import {PersistentVolumeClaimComponent} from './business/cluster/cluster-detail/storage/persistent-volume-claim/persistent-volume-claim.component';
+import {UserComponent} from './business/user/user.component';
+import {AuthUserService} from './shared/auth/auth-user.service';
+import {LoggingComponent} from './business/cluster/cluster-detail/logging/logging.component';
+import {MonitorComponent} from './business/cluster/cluster-detail/monitor/monitor.component';
+import {StorageClassComponent} from './business/cluster/cluster-detail/storage/storage-class/storage-class.component';
+import {RegionComponent} from './business/deploy-plan/region/region.component';
+import {DeployPlanComponent} from './business/deploy-plan/deploy-plan.component';
+import {ZoneComponent} from './business/deploy-plan/zone/zone.component';
+import {PlanComponent} from './business/deploy-plan/plan/plan.component';
+import {StorageProvisionerComponent} from './business/cluster/cluster-detail/storage/storage-provisioner/storage-provisioner.component';
+import {RepositoryComponent} from './business/cluster/cluster-detail/repository/repository.component';
+import {ChartmuseumComponent} from './business/cluster/cluster-detail/repository/chartmuseum/chartmuseum.component';
+import {RegistryComponent} from './business/cluster/cluster-detail/repository/registry/registry.component';
+import {ToolsComponent} from './business/cluster/cluster-detail/tools/tools.component';
+import {SystemComponent} from './business/setting/system/system.component';
+import {ProjectComponent} from './business/project/project.component';
+import {ProjectDetailComponent} from './business/project/project-detail/project-detail.component';
+import {ProjectRoutingResolverService} from './business/project/project-routing-resolver.service';
+import {ProjectResourceComponent} from './business/project/project-resource/project-resource.component';
+import {ProjectMemberComponent} from './business/project/project-member/project-member.component';
+import {LogComponent} from './business/cluster/cluster-detail/log/log.component';
+import {BackupAccountComponent} from './business/setting/backup-account/backup-account.component';
+import {BackupComponent} from './business/cluster/cluster-detail/backup/backup.component';
+import {LicenseComponent} from './business/setting/license/license.component';
+import {SecurityComponent} from './business/cluster/cluster-detail/security/security.component';
+import {LdapComponent} from './business/setting/ldap/ldap.component';
+import {ManifestComponent} from './business/manifest/manifest.component';
+import {ThemeComponent} from './business/setting/theme/theme.component';
+import {EventComponent} from './business/cluster/cluster-detail/event/event.component';
+import {MessageCenterComponent} from './business/message-center/message-center.component';
+import {UserReceiverComponent} from './business/message-center/user-receiver/user-receiver.component';
+import {UserSubscribeComponent} from './business/message-center/user-subscribe/user-subscribe.component';
+import {MailboxComponent} from './business/message-center/mailbox/mailbox.component';
+import {ClusterLoggerComponent} from './business/cluster/cluster-logger/cluster-logger.component';
+import {MessageComponent} from './business/setting/message/message.component';
+import {VmConfigComponent} from './business/deploy-plan/vm-config/vm-config.component';
+import {ClusterGradeComponent} from './business/cluster/cluster-detail/cluster-grade/cluster-grade.component';
+
 
 const routes: Routes = [
-  {path: 'sign-in', component: SignInComponent},
-  {
-    path: '',
-    component: ShellComponent,
-    canActivate: [AuthUserActiveService],
-    canActivateChild: [AuthUserActiveService],
-    children: [
-      {path: '', redirectTo: 'dashboard', pathMatch: 'full'},
-      {path: 'dashboard', component: DashboardComponent},
-      {path: 'cluster', component: ClusterComponent},
-      {path: 'item', component: ItemComponent},
-      {path: 'package', component: PackageComponent},
-      {path: 'user', component: UserComponent},
-      {path: 'host', component: HostComponent},
-      {path: 'user', component: UserComponent},
-      {
-        path: 'storage',
-        component: StorageComponent,
+    {path: 'login', component: LoginComponent},
+    {path: 'logger', component: ClusterLoggerComponent},
+    {
+        path: '',
+        component: LayoutComponent,
+        canActivate: [AuthUserService],
+        canActivateChild: [AuthUserService],
         children: [
-          {path: '', redirectTo: 'nfs', pathMatch: 'full'},
-          {path: 'nfs', component: NfsComponent},
-          {path: 'ceph', component: CephComponent},
+            {path: '', redirectTo: 'projects', pathMatch: 'full'},
+            {
+                path: 'projects',
+                component: ProjectComponent,
+            },
+            {
+                path: 'projects/:name',
+                component: ProjectDetailComponent,
+                resolve: {project: ProjectRoutingResolverService},
+                children: [
+                    {path: '', redirectTo: 'clusters', pathMatch: 'full'},
+                    {path: 'clusters', component: ClusterComponent},
+                    {path: 'resources', component: ProjectResourceComponent},
+                    {path: 'members', component: ProjectMemberComponent},
+                ]
+            },
+            {
+                path: 'projects/:projectName/clusters/:name',
+                component: ClusterDetailComponent,
+                resolve: {cluster: ClusterRoutingResolverService},
+                children: [
+                    {path: '', redirectTo: 'overview', pathMatch: 'full'},
+                    {path: 'overview', component: OverviewComponent},
+                    {path: 'nodes', component: NodeComponent},
+                    {path: 'namespaces', component: NamespaceComponent},
+                    {path: 'events', component: EventComponent},
+                    {
+                        path: 'storages',
+                        component: StorageComponent,
+                        children: [
+                            {path: '', redirectTo: 'pv', pathMatch: 'full'},
+                            {path: 'pv', component: PersistentVolumeComponent},
+                            {path: 'pvc', component: PersistentVolumeClaimComponent},
+                            {path: 'sc', component: StorageClassComponent},
+                            {path: 'provisioner', component: StorageProvisionerComponent},
+                        ],
+                    },
+                    {path: 'logging', component: LoggingComponent},
+                    {path: 'monitor', component: MonitorComponent},
+                    {path: 'security', component: SecurityComponent},
+                    {
+                        path: 'repository',
+                        component: RepositoryComponent,
+                        children: [
+                            {path: '', redirectTo: 'chartmuseum', pathMatch: 'full'},
+                            {path: 'chartmuseum', component: ChartmuseumComponent},
+                            {path: 'registry', component: RegistryComponent}
+                        ]
+                    },
+                    {path: 'tool', component: ToolsComponent},
+                    {path: 'backup', component: BackupComponent},
+                    {path: 'logs', component: LogComponent},
+                    {path: 'grade', component: ClusterGradeComponent},
+                ],
+            },
+            {
+                path: 'hosts',
+                component: HostComponent,
+            },
+            {
+                path: 'setting',
+                component: SettingComponent,
+                children: [
+                    {path: '', redirectTo: 'system', pathMatch: 'full'},
+                    {path: 'system', component: SystemComponent},
+                    {path: 'credential', component: CredentialComponent},
+                    {path: 'backupAccounts', component: BackupAccountComponent},
+                    {path: 'license', component: LicenseComponent},
+                    {path: 'ldap', component: LdapComponent},
+                    {path: 'theme', component: ThemeComponent},
+                    {path: 'message', component: MessageComponent},
+                ]
+            },
+            {
+                path: 'deploy',
+                component: DeployPlanComponent,
+                children: [
+                    {path: '', redirectTo: 'region', pathMatch: 'full'},
+                    {path: 'region', component: RegionComponent},
+                    {path: 'zone', component: ZoneComponent},
+                    {path: 'plan', component: PlanComponent},
+                    {path: 'vmConfig', component: VmConfigComponent}
+                ]
+            }, {
+                path: 'manifests',
+                component: ManifestComponent,
+            },
+            {
+                path: 'users',
+                component: UserComponent,
+            },
+            {
+                path: 'message',
+                component: MessageCenterComponent,
+                children: [
+                    {path: '', redirectTo: 'mailbox', pathMatch: 'full'},
+                    {path: 'userReceiver', component: UserReceiverComponent},
+                    {path: 'subscribe', component: UserSubscribeComponent},
+                    {path: 'mailbox', component: MailboxComponent}
+                ]
+            }
         ]
-      },
-      {
-        path: 'plan',
-        component: DeployPlanComponent,
-        children: [
-          {path: '', redirectTo: 'region', pathMatch: 'full'},
-          {path: 'region', component: RegionComponent},
-          {path: 'zone', component: ZoneComponent},
-          {path: 'plan', component: PlanComponent}
-        ]
-      },
-      {
-        path: 'setting',
-        component: SettingComponent,
-        children: [
-          {path: '', redirectTo: 'system', pathMatch: 'full'},
-          {path: 'system', component: SystemSettingComponent},
-          {path: 'credential', component: CredentialComponent},
-          {path: 'backup-storage', component: BackupStorageSettingComponent},
-          {path: 'ldap', component: LdapComponent},
-          {path: 'notification', component: NotificationComponent}
-        ]
-      },
-      {
-        path: 'cluster/:name',
-        component: ClusterDetailComponent,
-        resolve: {cluster: ClusterRoutingResolverService},
-        children: [
-          {path: '', redirectTo: 'overview', pathMatch: 'full'},
-          {path: 'overview', component: OverviewComponent},
-          {path: 'node', component: NodeComponent},
-          {path: 'deploy', component: DeployComponent},
-          {path: 'log', component: LogComponent},
-          {path: 'apps', component: ApplicationComponent},
-          {path: 'health', component: ClusterHealthComponent},
-          {path: 'event', component: ClusterEventComponent},
-          {path: 'backup', component: ClusterBackupComponent},
-          {path: 'grade', component: ClusterGradeComponent},
-          {path: 'big-ip', component: F5BigIpComponent},
-          {path: 'cluster-storage', component: ClusterStorageComponent}
-        ]
-      },
-      {
-        path: 'item/:itemName',
-        component: ItemDetailComponent,
-        resolve: {item: ItemRoutingResolverService},
-        children: [
-          {path: '', redirectTo: 'cluster', pathMatch: 'full'},
-          {
-            path: 'cluster', component: ClusterComponent
-          },
-          {path: 'members', component: ItemMemberComponent},
-          {path: 'resource', component: ItemResourceComponent},
-        ]
-      },
-      {
-        path: 'system/log', component: SystemLogComponent
-      },
-      {
-        path: 'messageCenter',
-        component: MessageCenterComponent,
-        children: [
-          {path: '', redirectTo: 'localMail', pathMatch: 'full'},
-          {path: 'localMail', component: LocalMailComponent},
-          {path: 'subscribe', component: SubscribeComponent},
-          {path: 'receiver', component: ReceiverComponent},
-        ]
-      }
-    ]
-  },
-  {path: '**', component: NotFoundComponent}
+    }
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
+    imports: [RouterModule.forRoot(routes)],
+    exports: [RouterModule]
 })
 export class AppRoutingModule {
 }
